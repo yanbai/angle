@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+<style>
+#box{width:150px; height:300px; background:#CCC; margin:60px 0 0 80px;}
+#corX{width:1px; height:100%; background:#000; position:absolute; top:0}
+#corY{width:100%; height:1px; background:#000; position:absolute; left:0}
+</style>
+</head>
+
+<body>
+	<div id="corX"></div>
+    <div id="corY"></div>
+    <div id="experiment">
+        <div id="box">
+            
+        </div>
+    </div>
+    <p>
+    	box:
+        <span>X:<em id="x"></em></span>
+        <span>Y:<em id="y"></em></span>
+    </p>
+    <p>
+    	mouse:
+        <span>X:<em id="mx"></em></span>
+        <span>Y:<em id="my"></em></span>
+    </p>
+    <p>
+    	relative:
+        <span>X:<em id="rx"></em></span>
+        <span>Y:<em id="ry"></em></span>
+    </p>
+    <p>
+    	角度的余弦:
+        <span>a_1:<em id="cosAng_1"></em></span>
+        <span>a_2:<em id="cosAng_2"></em></span>
+    </p>
+    <p>
+    	角度:
+        <span>X:<em id="Ang_1"></em></span>
+        <span>Y:<em id="Ang_2"></em></span>
+    </p>
+    
+</body>
+<script>
+
+var C={
+    isIE : document.all?true:false,
+    isIE6: this.isIE && ([/MSIE (\d)\.0/i.exec(navigator.userAgent)][0][1]==6),
+	getElementTop : function(ele){
+		var actualTop = ele.offsetTop;
+		var current = ele.offsetParent;
+		while(current !== null){
+			actualTop += current.offsetTop;
+　　　　　　current = current.offsetParent;
+		}
+		return actualTop;
+	},
+	getElementLeft : function(ele){
+		var actualLeft = ele.offsetLeft;
+		var current = ele.offsetParent;
+		while(current !== null){
+			actualLeft += current.offsetLeft;
+　　　　　　current = current.offsetParent;
+		}
+		return actualLeft;
+	},
+	getElements : function(parentsElement , selectTagName , className){
+		if(!className){
+			return parentsElement.getElementsByTagName(selectTagName)
+		}
+		else{
+			var a = parentsElement.getElementsByTagName(selectTagName);
+			var b = [];
+			for(var i = 0, l=a.length ; i<l ; i++){
+				if(a[i].className == className){b.push(a[i])}
+			}
+			return b.length ? b : null;
+		}
+	},
+	elementsToArray : function(elements,array){
+		if(elements.length>0){for(var i=elements.length-1;i>=0;i--){array.push(elements[i])}};
+		return array;
+	},
+	getClassName : function(className,ele,tagName){
+		var arr=[];
+		var eles=null;
+		if(ele) {
+			ele = this.getId(ele);
+			if(tagName)
+				eles=ele.getElementsByTagName(tagName)
+			else
+				eles=ele.getElementsByTagName('*')
+		}else
+			eles=document.getElementsByTagName('*');
+			
+		for(var i=0;i<eles.length;i++){
+			if(eles[i].className.search(new RegExp("\\b" + className + "\\b"))!=-1){
+				arr.push(eles.item(i))
+			}
+		}
+		return arr;
+	},
+	hasClass : function(element, className){
+		var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+    	return element.className.match(reg);
+	},
+	addClass : function(elem,value,e){
+		if(e){this.stop(e)}
+		 if(!elem.className){
+	        elem.className=value;
+	    }else{
+	        var oValue=elem.className;
+	        oValue+=" ";
+	        oValue+=value;
+	        elem.className=oValue;
+    	}
+	},
+	removeClass : function(element, className,e){
+		if(e){this.stop(e)}
+		if (this.hasClass(element, className)) {
+	        var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+	        element.className = element.className.replace(reg, '');
+	    }
+	}
+};
+
+
+function calc(e){
+	var e = e||window.event;
+	var wOfBox = document.getElementById('box').clientWidth;
+	var hOfBox = document.getElementById('box').clientHeight;
+	var topOfBox = C.getElementTop(document.getElementById('box'));
+	var leftOfBox = C.getElementLeft(document.getElementById('box'));
+	
+	document.getElementById('x').innerHTML = leftOfBox;
+	document.getElementById('y').innerHTML = topOfBox;
+	if (document.compatMode == "BackCompat"){
+　　　　　　var elementScrollLeft=document.body.scrollLeft;
+　　　　　　var elementScrollTop=document.body.scrollTop;
+	} else {
+　　　　　　var elementScrollLeft=document.documentElement.scrollLeft;
+　　　　　　var elementScrollTop=document.documentElement.scrollTop;
+    }
+	var topOfMouse = e.clientY+elementScrollTop;
+	var leftOfMouse = e.clientX+elementScrollLeft;
+	
+	document.getElementById('mx').innerHTML = leftOfMouse;
+	document.getElementById('my').innerHTML = topOfMouse;
+	document.getElementById('corX').style.left = leftOfMouse+'px';
+	document.getElementById('corY').style.top = topOfMouse+'px';
+	
+	var relativeX = leftOfMouse - leftOfBox;
+	var relativeY = topOfMouse - topOfBox;
+	document.getElementById('rx').innerHTML = relativeX;
+	document.getElementById('ry').innerHTML = relativeY;
+	
+	var cosAng_1 = relativeY/Math.sqrt((wOfBox-relativeX)*(wOfBox-relativeX)+(relativeY*relativeY));
+	var cosAng_2 = (hOfBox-relativeY)/Math.sqrt((wOfBox-relativeX)*(wOfBox-relativeX)+(hOfBox-relativeY)*(hOfBox-relativeY));
+	document.getElementById('cosAng_1').innerHTML = cosAng_1;
+	document.getElementById('cosAng_2').innerHTML = cosAng_2;
+	
+	var Ang_1 = Math.acos(cosAng_1)*180/Math.PI;
+	var Ang_2 = Math.acos(cosAng_2)*180/Math.PI;
+	document.getElementById('Ang_1').innerHTML = Ang_1;
+	document.getElementById('Ang_2').innerHTML = Ang_2;
+}
+document.getElementById('box').onmousemove=function(e){delay._delay(calc,e)};
+//var a = [1,2,4,8,11]
+//console.log('a数量',a.slice(1).length)
+
+var delay={
+	_lock:false,
+	delay:200,
+	_delay: function(run) {//run以后的都作为run的参数
+		clearTimeout(this._timer);
+		var a = arguments;
+		var paraOfRun = Array.prototype.slice.apply(arguments).slice(1);
+		
+		var oThis = this, delay = this.delay;
+		if ( this._lock ) {//防止连续触发
+			this._timer = setTimeout( function(){ oThis._delay(run,paraOfRun); }, delay );
+		} else {
+			this._lock = true; run.apply(oThis,paraOfRun);
+			setTimeout( function(){ oThis._lock = false; }, delay );
+		}
+	},
+	_delay_2: function(run,e) {//run以后的都作为run的参数
+		clearTimeout(this._timer);
+		var oThis = this, delay = this.delay;
+		if ( this._lock ) {//防止连续触发
+			this._timer = setTimeout( function(){ oThis._delay_2(run,e); }, delay );
+		} else {
+			this._lock = true; run(e);
+			setTimeout( function(){ oThis._lock = false; }, delay );
+		}
+	}
+}
+
+</script>
+</html>
